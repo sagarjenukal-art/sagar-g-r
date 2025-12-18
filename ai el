@@ -1,0 +1,54 @@
+import time
+import random
+import joblib
+import numpy as np
+
+# Load trained ML model
+model = joblib.load("water_contamination_model.pkl")
+
+# -------------------------------
+# Sensor Reading Functions
+# -------------------------------
+def read_turbidity():
+    return random.uniform(0, 100)
+
+def read_ph():
+    return random.uniform(5.5, 9.0)
+
+def read_tds():
+    return random.uniform(50, 800)
+
+def read_garbage_sensor():
+    return random.choice([0, 1])
+
+# False alarm reduction counter
+CONFIRMATION_COUNT = 3
+alert_counter = 0
+
+# -------------------------------
+# Real-Time Monitoring
+# -------------------------------
+while True:
+    turbidity = read_turbidity()
+    ph = read_ph()
+    tds = read_tds()
+    garbage = read_garbage_sensor()
+
+    sensor_data = np.array([[turbidity, ph, tds, garbage]])
+    prediction = model.predict(sensor_data)
+
+    print(f"Turbidity:{turbidity:.2f} | pH:{ph:.2f} | TDS:{tds:.2f} | Garbage:{garbage}")
+
+    if prediction[0] == 1:
+        alert_counter += 1
+    else:
+        alert_counter = 0
+
+    if alert_counter >= CONFIRMATION_COUNT:
+        print("⚠️ ML ALERT: Water Contamination Detected!")
+        print("🧹 Activating cleaning & filtration system")
+        print("📱 Sending alert to monitoring device\n")
+        alert_counter = 0
+
+    time.sleep(2)
+
